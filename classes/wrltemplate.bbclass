@@ -1,7 +1,7 @@
 #
 # Template helper class
 #
-# Copyright (C) 2016 Wind River Systems, Inc.
+# Copyright (C) 2016-2017 Wind River Systems, Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -57,11 +57,8 @@ addhandler wrl_template_processing_eventhandler
 wrl_template_processing_eventhandler[eventmask] = "bb.event.ConfigParsed"
 #wrl_template_processing_eventhandler[eventmask] = "bb.event.SanityCheck"
 python wrl_template_processing_eventhandler () {
-    # Do nothing when BB_SETSCENE_ENFORCE = 1, avoid generating and
-    # packing conf/wr* files in ext sdk.
-    if d.getVar('BB_SETSCENE_ENFORCE', True) == '1':
-        d.setVar('WRTEMPLATE_IMAGE', '0')
-        return
+    # Generate the wr files in conf even for do_populate_sdk_ext(), but
+    # remove them.  See items at the end of this class.
 
     def find_template(bbpath, template, known=[], startpath=None, findfirst=True):
         """
@@ -346,4 +343,16 @@ python wrl_template_processing_eventhandler () {
             f.close()
 
         e.data.setVar("BB_INVALIDCONF", '1')
+}
+
+# We must remove at least the *.conf files before the first
+# recipe parse during sdk_ext installation or it will fail!
+# They will be re-generated after the first parsing.
+#
+# There are still entries for these in the manifest, but the
+# installation script does not care.
+#
+sdk_ext_postinst_prepend () {
+    printf "\nRemoving WR template conf files from %s/conf\n" $target_sdk_dir
+    rm -f $target_sdk_dir/conf/wrtemplate*.conf $target_sdk_dir/conf/wrimage*.inc
 }
