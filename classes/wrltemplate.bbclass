@@ -191,9 +191,30 @@ python wrl_template_processing_eventhandler () {
         if os.path.exists(wrimagemf):
             wrimagemt = os.path.getmtime(wrimagemf)
 
+    # mtime format is a string of space separated '<filename>(mtime)'
+    def check_mtimes(mtimes):
+        if mtimes:
+            for entry in mtimes.split():
+                tconf = '('.join(entry.split('(')[:-1])
+                mtime = '('.join(entry.split('(')[-1:]).split(')')[0]
+
+                if os.path.exists(tconf) and float(mtime) == os.path.getmtime(tconf):
+                    continue
+
+                return True
+
+        return False
+
+    # If WRTEMPLATE[mtimes] is set, we need to verify that the mtimes have not changed
+    reload_mtime = check_mtimes(e.data.getVarFlag("WRTEMPLATE", "mtimes", True))
+
+    # If WRTEMPLATE[machine_mtimes] is set, we need to verify that the mtimes have not changed
+    reload_machine_mtime = check_mtimes(e.data.getVarFlag("WRTEMPLATE", "machine_mtimes", True))
+
     # If we detect missing configuration, or the configuration is older then this class
     # regenerate files as necessary...
-    if e.data.getVar("WRTEMPLATE", True) != e.data.getVarFlag("WRTEMPLATE", 'manual', True) or \
+    if reload_mtime or \
+       e.data.getVar("WRTEMPLATE", True) != e.data.getVarFlag("WRTEMPLATE", 'manual', True) or \
        e.data.getVar("WRTEMPLATE_SKIP", True) != e.data.getVarFlag("WRTEMPLATE", "skip", True) or \
        e.data.getVar("WRTEMPLATE", True) != e.data.getVarFlag("WRTEMPLATE", 'machine', True) or \
        e.data.getVar("WRTEMPLATE_SKIP", True) != e.data.getVarFlag("WRTEMPLATE", "machine_skip", True) or \
@@ -237,7 +258,8 @@ python wrl_template_processing_eventhandler () {
             return
 
         # Check if the configuration wide files are out of date and need to be regenerated...
-        if e.data.getVar("WRTEMPLATE", True) != e.data.getVarFlag("WRTEMPLATE", 'manual', True) or \
+        if reload_mtime or \
+           e.data.getVar("WRTEMPLATE", True) != e.data.getVarFlag("WRTEMPLATE", 'manual', True) or \
            e.data.getVar("WRTEMPLATE_SKIP", True) != e.data.getVarFlag("WRTEMPLATE", "skip", True) or \
            e.data.getVar("BBLAYERS", True) != e.data.getVarFlag("WRTEMPLATE", "bblayers", True) or \
            readmet < classmt or wrtemplatet < classmt or wrimaget < classmt:
@@ -245,7 +267,7 @@ python wrl_template_processing_eventhandler () {
             f = open(readmef, 'w')
             f.write("This file contains a collection of the enabled template's README files\n\n")
             for t in templates:
-                tconf = os.path.join(t, 'README')
+                tconf = os.path.realpath(os.path.join(t, 'README'))
                 if os.path.exists(tconf):
                     f.write('#### %s:\n' % tconf)
                     fin = open(tconf, 'r')
@@ -267,9 +289,14 @@ python wrl_template_processing_eventhandler () {
             f.write('\n')
             for t in templates:
                 f.write('#### %s\n' % t)
-                tconf = os.path.join(t, 'template.conf')
+                tconf = os.path.realpath(os.path.join(t, 'template.conf'))
                 if os.path.exists(tconf):
-                    f.write('require %s\n' % tconf)
+                    f.write('WRTEMPLATE[mtimes] += "%s(%s)"\n' % (tconf, os.path.getmtime(tconf)))
+                    fin = open(tconf, 'r')
+                    for line in fin.readlines():
+                        f.write('%s' % line)
+                    fin.close()
+                f.write('\n')
             f.close()
 
             # Construct the conf/wrimage.inc file
@@ -280,8 +307,9 @@ python wrl_template_processing_eventhandler () {
             f.write('\n')
             for t in templates:
                 f.write('#### %s\n' % t)
-                tconf = os.path.join(t, 'image.inc')
+                tconf = os.path.realpath(os.path.join(t, 'image.inc'))
                 if os.path.exists(tconf):
+                    f.write('WRTEMPLATE[mtimes] += "%s(%s)"\n' % (tconf, os.path.getmtime(tconf)))
                     fin = open(tconf, 'r')
                     for line in fin.readlines():
                         f.write('%s' % line)
@@ -292,7 +320,8 @@ python wrl_template_processing_eventhandler () {
         # Check if the machine specific configuration files are out of date and need to be regenerated...
         # It is valid for the system config to be set, but machine config to be differrent
         # this happens when the user switches machines, or does a multiple machine build
-        if e.data.getVar("WRTEMPLATE", True) != e.data.getVarFlag("WRTEMPLATE", 'machine', True) or \
+        if reload_machine_mtime or \
+           e.data.getVar("WRTEMPLATE", True) != e.data.getVarFlag("WRTEMPLATE", 'machine', True) or \
            e.data.getVar("WRTEMPLATE_SKIP", True) != e.data.getVarFlag("WRTEMPLATE", "machine_skip", True) or \
            e.data.getVar("BBLAYERS", True) != e.data.getVarFlag("WRTEMPLATE", "machine_bblayers", True) or \
            wrtemplatemt < classmt or wrimagemt < classmt:
@@ -318,9 +347,14 @@ python wrl_template_processing_eventhandler () {
                 for t in templates:
                     if t.startswith(machlayer):
                         f.write('#### %s\n' % t)
-                        tconf = os.path.join(t, 'bsp-pkgs.conf')
+                        tconf = os.path.realpath(os.path.join(t, 'bsp-pkgs.conf'))
                         if os.path.exists(tconf):
-                           f.write('require %s\n' % tconf)
+                            f.write('WRTEMPLATE[machine_mtimes] += "%s(%s)"\n' % (tconf, os.path.getmtime(tconf)))
+                            fin = open(tconf, 'r')
+                            for line in fin.readlines():
+                                f.write('%s' % line)
+                            fin.close()
+                        f.write('\n')
             f.close()
 
             # Construct the conf/wrimage_${MACHINE}.inc file
@@ -333,8 +367,9 @@ python wrl_template_processing_eventhandler () {
                 for t in templates:
                     if t.startswith(machlayer):
                         f.write('#### %s\n' % t)
-                        tconf = os.path.join(t, 'bsp-pkgs.inc')
+                        tconf = os.path.realpath(os.path.join(t, 'bsp-pkgs.inc'))
                         if os.path.exists(tconf):
+                            f.write('WRTEMPLATE[machine_mtimes] += "%s(%s)"\n' % (tconf, os.path.getmtime(tconf)))
                             fin = open(tconf, 'r')
                             for line in fin.readlines():
                                 f.write('%s' % line)
