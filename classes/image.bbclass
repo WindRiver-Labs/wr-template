@@ -4,7 +4,7 @@
 # Purpose of this class is to intercept the image.bbclass inherit and add
 # template process inclusion.
 #
-# Copyright (C) 2016 Wind River Systems, Inc.
+# Copyright (C) 2016-2017 Wind River Systems, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,9 @@ def wrlt_next_class(d, classname):
     idx = -1
     bbpath = d.getVar('BBPATH', True).split(':')
 
+    # We need to expand the bbpath to match __inherit_cache entry
+    bbpath = list(map(lambda x: os.path.realpath(x), bbpath))
+
     # based on bb.data.inherits_class -- find the last inherit of this class
     val = d.getVar('__inherit_cache', False) or []
     needle = os.path.join('classes', '%s.bbclass' % classname)
@@ -44,7 +47,13 @@ def wrlt_next_class(d, classname):
     for v in val:
         if v.endswith(needle):
            layername = os.path.dirname(os.path.dirname(v))
-           idx = bbpath.index(layername)
+
+           # If the bbpath has the same layer more than once, scan to the end
+           while True:
+               try:
+                   idx = bbpath.index(layername, idx+1)
+               except ValueError:
+                   break
            break
 
     ret = bb.utils.which(":".join(bbpath[idx+1:]), 'classes/%s.bbclass' % classname) or ""
