@@ -1,7 +1,7 @@
 wr-template
 ===========
 
-This layer provides template processing support to OpenEmbedded.  Wind River
+This layer provides template processing support for OpenEmbedded.  Wind River
 templates are a mechanism that permit various configurations to be enabled
 with a simple setting.
 
@@ -15,22 +15,22 @@ cause that template to be included by default even if the user has not
 specified it.
 
 A template directory may contain:
-   README - template README file
-   require - list of other templates required for this one
-   template.conf - template configuration fragment
-   image.inc - image fragment
-   bsp-pkgs.conf - BSP specific configuration fragment
-   bsp-pkgs.inc - BSP specific image fragment
+   README - a template README file
+   require - a list of other templates required for this one
+   template.conf - a template configuration fragment
+   image.inc - an image fragment
+   bsp-pkgs.conf - a BSP specific configuration fragment
+   bsp-pkgs.inc - a BSP specific image fragment
 
-The README file is simply plain text that will be copied to a generated
-README_templates file in the users TOPDIR.  This allows a user to see
+The README is a plain text file that will be copied to a generated
+README_templates file in the user's TOPDIR.  This allows a user to see
 all README information for each template they have selected.
 
 The require file may include comments, starting with a '#' or template names
 to include.
 
 The template.conf file contains various configuration variables that would
-normally be placed into local.conf (or another similar.conf file) by the user.
+normally be placed in local.conf (or another similar '.conf' file) by the user.
 
 The image.inc file contains various image recipe specific variables.  The
 variables here are typically added to a recipe (.bb) or bbappend file.
@@ -40,14 +40,13 @@ compiling a BSP that is defined in that layer.  The bsp-pkgs.conf is equivalent
 to the template.conf file, while the bsp-pkgs.inc is equivalent to the
 image.inc file.
 
-In addition, the layer allows for the templates to set various banner
-messages.
+In addition, the layer allows the templates to set various banner messages.
 
     CONFIG_BANNER[path_to_template] = "..."
     BANNER[path_to_template] = "..."
 
 A configuration banner is only displayed if bitbake has to reparse the
-configuration.  A runtime banner will always be displayed each time a 
+configuration.  A runtime banner will always be displayed when a 
 build is run.
 
 
