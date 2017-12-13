@@ -39,6 +39,11 @@ The bsp-pkgs.conf and bsp-pkgs.inc files are only loaded if the user is
 compiling a BSP that is defined in that layer.  The bsp-pkgs.conf is equivalent
 to the template.conf file, while the bsp-pkgs.inc is equivalent to the
 image.inc file.
+Note: Parent layer's bsp-pkgs.conf and bsp-pkgs.inc in templates can be
+      included by sublayer, for example, parent's templates/default/bsp-pkgs.conf
+      and templates/default/bsp-pkgs.inc will be included by sublayer when
+      there is no default template in sublayer, the similar to other
+      templates.
 
 In addition, the layer allows the templates to set various banner messages.
 
