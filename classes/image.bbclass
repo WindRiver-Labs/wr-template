@@ -63,6 +63,8 @@ def wrlt_next_class(d, classname):
 inherit ${@wrlt_next_class(d, 'image')}
 
 # The includes must always be -after- image.bbclass inherit
-# because they may add or remove from the image variable
-require ${@['${WRTEMPLATE_CONF_WRIMAGE}', 'wrlnoimage.inc'][d.getVar('WRTEMPLATE_IMAGE', True) != '1']}
-require ${@['${WRTEMPLATE_CONF_WRIMAGE_MACH}', 'wrlnoimage_mach.inc'][d.getVar('WRTEMPLATE_IMAGE', True) != '1']}
+# because they may add or remove from the image variable.
+# Use a neat way to workaround "require ''", otherwise it would be failed when
+# update it in layerindex.
+require ${@[d.getVar('WRTEMPLATE_CONF_WRIMAGE', True) or '', 'wrlnoimage.inc'][(d.getVar('WRTEMPLATE_CONF_WRIMAGE', True) or '') != '' and d.getVar('WRTEMPLATE_IMAGE', True) == '1']}
+require ${@[d.getVar('WRTEMPLATE_CONF_WRIMAGE_MACH', True) or '', 'wrlnoimage_mach.inc'][(d.getVar('WRTEMPLATE_CONF_WRIMAGE_MACH', True) or '') != '' and d.getVar('WRTEMPLATE_IMAGE', True) == '1']}
