@@ -66,5 +66,5 @@ inherit ${@wrlt_next_class(d, 'image')}
 # because they may add or remove from the image variable.
 # Use a neat way to workaround "require ''", otherwise it would be failed when
 # update it in layerindex.
-require ${@[d.getVar('WRTEMPLATE_CONF_WRIMAGE', True) or '', 'wrlnoimage.inc'][(d.getVar('WRTEMPLATE_CONF_WRIMAGE', True) or '') != '' and d.getVar('WRTEMPLATE_IMAGE', True) == '1']}
-require ${@[d.getVar('WRTEMPLATE_CONF_WRIMAGE_MACH', True) or '', 'wrlnoimage_mach.inc'][(d.getVar('WRTEMPLATE_CONF_WRIMAGE_MACH', True) or '') != '' and d.getVar('WRTEMPLATE_IMAGE', True) == '1']}
+require ${@['wrlnoimage.inc', d.getVar('WRTEMPLATE_CONF_WRIMAGE', True) or ''][(d.getVar('WRTEMPLATE_CONF_WRIMAGE', True) or '') != '' and d.getVar('WRTEMPLATE_IMAGE', True) == '1']}
+require ${@['wrlnoimage_mach.inc', d.getVar('WRTEMPLATE_CONF_WRIMAGE_MACH', True) or ''][(d.getVar('WRTEMPLATE_CONF_WRIMAGE_MACH', True) or '') != '' and d.getVar('WRTEMPLATE_IMAGE', True) == '1']}
