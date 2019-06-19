@@ -234,7 +234,7 @@ python wrl_template_processing_eventhandler () {
 
     # If we detect missing configuration, or the configuration is older then this class
     # regenerate files as necessary...
-    if reload_mtime or \
+    if reload_mtime or reload_machine_mtime or\
        e.data.getVar("WRTEMPLATE") != e.data.getVarFlag("WRTEMPLATE", 'manual') or \
        e.data.getVar("WRTEMPLATE_SKIP") != e.data.getVarFlag("WRTEMPLATE", "skip") or \
        e.data.getVar("WRTEMPLATE") != e.data.getVarFlag("WRTEMPLATE", 'machine') or \
