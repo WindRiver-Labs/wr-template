@@ -403,6 +403,7 @@ python wrl_template_processing_eventhandler () {
             f.write('# Generated on %s\n' % e.data.getVar('DATETIME'))
             f.write('\n')
             if process_mach == '1':
+                f_wrtemplatemf = open(wrtemplatemf, 'a')
                 for t in templates:
                     # Search templates in parent layer if it is a sublayer
                     t_layer = get_layer_from_template(t)
@@ -410,12 +411,17 @@ python wrl_template_processing_eventhandler () {
                         f.write('#### %s\n' % t)
                         tconf = os.path.realpath(os.path.join(t, 'bsp-pkgs.inc'))
                         if os.path.exists(tconf):
-                            f.write('WRTEMPLATE[machine_mtimes] += "%s(%s)"\n' % (tconf, os.path.getmtime(tconf)))
+                            # Write bsp-pkgs.inc's mtimes to WRTEMPLATE_CONF_WRTEMPLATE_MACH
+                            # rather than WRTEMPLATE_CONF_WRIMAGE_MACH, otherwise it won't
+                            # reload when bsp-pkgs.inc's mtime is changed since the later
+                            # one is not included when parsing.
+                            f_wrtemplatemf.write('WRTEMPLATE[machine_mtimes] += "%s(%s)"\n' % (tconf, os.path.getmtime(tconf)))
                             fin = open(tconf, 'r')
                             for line in fin.readlines():
                                 f.write('%s' % line)
                             fin.close()
                         f.write('\n')
+                f_wrtemplatemf.close()
             f.close()
 
         e.data.setVar("BB_INVALIDCONF", True)
