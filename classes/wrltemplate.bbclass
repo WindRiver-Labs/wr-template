@@ -318,6 +318,9 @@ python wrl_template_processing_eventhandler () {
                         f.write('%s' % line)
                     fin.close()
                 f.write('\n')
+                require = os.path.realpath(os.path.join(t, 'require'))
+                if os.path.exists(require):
+                    f.write('WRTEMPLATE[mtimes] += "%s(%s)"\n' % (require, os.path.getmtime(require)))
             f.close()
 
             # Construct the conf/wrimage.inc file
